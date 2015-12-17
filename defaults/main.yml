@@ -1,0 +1,9 @@
+---
+
+app: {
+  logentries: {
+    hostname: "",
+    account_key: "",
+    logs: [],
+  }
+}

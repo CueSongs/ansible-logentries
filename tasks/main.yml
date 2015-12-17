@@ -1,0 +1,33 @@
+---
+
+- name: Add apt keys
+  apt_key: id="C43C79AD" keyserver="pgp.mit.edu" state=present
+  
+- name: Add apt repositories
+  apt_repository: repo="deb http://rep.logentries.com/ {{ ansible_distribution_release }} main" update_cache=yes
+
+- name: Install packages APT
+  apt: name={{ item }} state=present
+  with_items:
+    - curl
+    - logentries
+    - python-setproctitle
+
+- name: Check if host is registered
+  command: le whoami
+  register: result
+  ignore_errors: true
+  changed_when: false
+
+- name: Register host
+  shell: "le register --force --name={{ app.logentries.hostname | default(ansible_fqdn) }} --hostname={{ app.logentries.hostname | default(ansible_fqdn) }} --yes --account-key={{ app.logentries.account_key }}"
+  when: result|failed
+
+- name: Install logentries daemon APT
+  apt: name=logentries-daemon state=present
+
+- name: Follow logs
+  logentries: path={{ item.path }} state={{ item.state | default('present') }}
+  with_items: app.logentries.logs
+  notify:
+    - Restart logentries
