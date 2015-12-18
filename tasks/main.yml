@@ -27,6 +27,10 @@
 - name: Install logentries daemon APT
   apt: name=logentries-daemon state=present
 
+- name: Enable LogEntries
+  service: name=logentries state=started enabled=yes
+  sudo: yes
+
 - name: Follow logs
   logentries: path={{ item.path }} state={{ item.state | default('present') }}
   with_items: app.logentries.logs
